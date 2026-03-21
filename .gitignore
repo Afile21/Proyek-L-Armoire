@@ -39,3 +39,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# --- TAMBAHAN DARI TEMPLATE ---
+
+# IDEs and editors (Biar settingan VS Code mu gak ikut ke-upload)
+.vscode/
+.idea/
+*.sublime-*
+*.sublime-project
+*.sublime-workspace
+
+# Database (Buat jaga-jaga kalau kamu pakai database lokal)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
