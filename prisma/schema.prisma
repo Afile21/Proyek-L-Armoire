@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Table Items (Data Induk Pakaian)
+model Item {
+  id                String   @id @default(uuid())
+  images            String[] // Array URL Cloudinary
+  video_url         String?
+  brand             String
+  size              String
+  purchase_date     DateTime
+  wash_instructions String?
+  price             Decimal  @db.Decimal(10, 2)
+  base_color        String
+  category          Category
+  material          String
+  genre             String
+  season            Season
+  status            Status
+  created_at        DateTime @default(now())
+
+  // Relasi
+  wearLogs WearLog[]
+  outfits  OutfitItem[]
+}
+
+// 2. Table WearLogs (Untuk menghitung CPW)
+model WearLog {
+  id        String   @id @default(uuid())
+  worn_date DateTime @default(now())
+  
+  // Relasi ke Item
+  item_id   String
+  item      Item     @relation(fields: [item_id], references: [id], onDelete: Cascade)
+}
+
+// 3. Table Outfits (Lookbook)
+model Outfit {
+  id           String   @id @default(uuid())
+  outfit_name  String
+  season_genre String?
+  created_at   DateTime @default(now())
+
+  // Relasi ke OutfitItem
+  items OutfitItem[]
+}
+
+// 4. Table OutfitItems (Junction Table: Many-to-Many)
+model OutfitItem {
+  outfit_id String
+  item_id   String
+
+  outfit Outfit @relation(fields: [outfit_id], references: [id], onDelete: Cascade)
+  item   Item   @relation(fields: [item_id], references: [id], onDelete: Cascade)
+
+  @@id([outfit_id, item_id]) // Composite primary key
+}
+
+// Enumerations (Pilihan Tetap)
+enum Category {
+  TOP
+  BOTTOM
+  OUTERWEAR
+  SHOES
+  ACCESSORIES
+}
+
+enum Season {
+  SPRING
+  SUMMER
+  AUTUMN
+  WINTER
+  ALL_SEASON
+}
+
+enum Status {
+  ACTIVE
+  WASH
+  REPAIR
+  DONATED
+  ARCHIVED
+  LOST
+}
