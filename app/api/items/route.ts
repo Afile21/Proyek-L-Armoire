@@ -1,0 +1,36 @@
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+export async function POST(req: Request) {
+    try {
+        // 1. Menerima data dari Frontend
+        const body = await req.json();
+
+        // 2. Menyimpan data ke Database PostgreSQL menggunakan Prisma
+        const newItem = await prisma.item.create({
+            data: {
+                brand: body.brand,
+                price: parseFloat(body.price),
+                category: body.category,
+                season: body.season,
+                images: [body.imageUrl], // URL dari Cloudinary
+
+                // Data default (sementara) untuk field wajib lainnya di database
+                size: "OS",
+                purchase_date: new Date(),
+                base_color: "BLACK",
+                material: "UNKNOWN",
+                genre: "LUXURY",
+                status: "ACTIVE"
+            }
+        });
+
+        // 3. Mengirim respons sukses ke Frontend
+        return NextResponse.json(newItem, { status: 201 });
+    } catch (error) {
+        console.error("Database Error:", error);
+        return NextResponse.json({ error: "Gagal menyimpan data pakaian" }, { status: 500 });
+    }
+}
