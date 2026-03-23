@@ -40,6 +40,14 @@ export default function AddItem() {
             const cloudinaryData = await cloudinaryRes.json();
             const imageUrl = cloudinaryData.secure_url;
 
+            // --- TAMBAHKAN PENGECEKAN INI ---
+            if (!imageUrl) {
+                alert("Gagal mengunggah gambar ke Cloudinary! Pastikan preset sudah benar.");
+                setIsSubmitting(false);
+                return; // Hentikan proses agar tidak eror masuk ke database
+            }
+            // --------------------------------
+
             // 2. SIMPAN KE DATABASE (Mengirim data + URL gambar ke API kita)
             const dbRes = await fetch("/api/items", {
                 method: "POST",

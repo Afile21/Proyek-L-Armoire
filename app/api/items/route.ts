@@ -30,9 +30,18 @@ export async function POST(req: Request) {
 
         // 3. Mengirim respons sukses ke Frontend
         return NextResponse.json(newItem, { status: 201 });
-    } catch (error) {
-        console.error("Database Error:", error);
-        return NextResponse.json({ error: "Gagal menyimpan data pakaian" }, { status: 500 });
+    // ... kode di atasnya
+        } catch (error) {
+        // Mengecek dengan aman apakah error memiliki pesan (message)
+        const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan yang tidak diketahui";
+        
+        // Tampilkan pesan eror detail di terminal VSCode
+        console.error("Database Error Detail:", errorMessage); 
+        
+        return NextResponse.json(
+            { error: "Gagal menyimpan data pakaian", detail: errorMessage }, 
+            { status: 500 }
+        );
     }
 }
 
