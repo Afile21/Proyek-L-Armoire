@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PrismaClient } from "@prisma/client";
 import { notFound } from "next/navigation";
+import LogWearButton from "@/app/components/LogWearButton";
 
 const prisma = new PrismaClient();
 
@@ -97,7 +98,7 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                         </div>
 
                         {/* Tabel Atribut Database Asli */}
-                        <div className="grid grid-cols-2 gap-y-8 text-[10px] md:text-xs uppercase tracking-[0.1em] border-y border-gray-100 py-8">
+                        <div className="grid grid-cols-2 gap-y-8 text-[10px] md:text-xs uppercase tracking-widest border-y border-gray-100 py-8">
                             <div>
                                 <span className="block text-gray-400 mb-1">Color</span>
                                 <span>{item.base_color}</span>
@@ -121,7 +122,7 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                             <h3 className="text-xs tracking-[0.2em] uppercase mb-8 font-bold border-b border-gray-200 pb-4">
                                 Investment Metrics
                             </h3>
-                            <div className="space-y-6 text-xs uppercase tracking-[0.1em]">
+                            <div className="space-y-6 text-xs uppercase tracking-widest">
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-400">Owned For</span>
                                     <span>{ownedFor}</span>
@@ -141,11 +142,8 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                             </div>
                         </div>
 
-                        {/* Tombol Aksi - Logikanya akan kita buat di Fase 9 */}
-                        <button className="w-full border border-black bg-black text-white py-4 text-xs tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-colors duration-300">
-                            Log a Wear (Pakai Hari Ini)
-                        </button>
-
+                        {/* Tombol Aksi Interaktif */}
+                        <LogWearButton itemId={item.id} />
                     </div>
                 </div>
             </div>

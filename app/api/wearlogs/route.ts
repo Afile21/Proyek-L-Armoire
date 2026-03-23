@@ -13,14 +13,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Item ID is required" }, { status: 400 });
         }
 
-        // Menyimpan log pemakaian ke database (tanggal otomatis hari ini)
+        // Menyimpan log pemakaian ke database
         const wearLog = await prisma.wearLog.create({
             data: {
                 item_id: itemId,
-                wear_date: new Date(),
+                worn_date: new Date(), // Gunakan worn_date sesuai skema prisma
             }
         });
-
         return NextResponse.json({ success: true, wearLog }, { status: 201 });
     } catch (error) {
         console.error("Error creating WearLog:", error);
