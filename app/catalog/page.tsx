@@ -1,12 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import Link from "next/link"; // Tambahkan import Link
 
 const prisma = new PrismaClient();
 
-// Karena menggunakan Next.js App Router, ini adalah Server Component
-// Kita bisa langsung mengambil data dari database di sini
 export default async function Catalog() {
-    
-    // 1. Mengambil data ASLI dari database, diurutkan dari yang terbaru
+    // 1. Mengambil data dari database, diurutkan dari yang terbaru
     const items = await prisma.item.findMany({
         orderBy: { created_at: 'desc' }
     });
@@ -29,35 +27,31 @@ export default async function Catalog() {
             {/* Grid Layout */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-12">
                 {items.map((item) => (
-                    <div key={item.id} className="group cursor-pointer">
+                    // 2. Ubah div menjadi Link untuk routing dinamis ke detail page
+                    <Link href={`/catalog/${item.id}`} key={item.id} className="group cursor-pointer">
                         {/* Image Container */}
-                        <div className="relative aspect-[4/5] overflow-hidden bg-gray-50 mb-4">
-                            {/* Gambar Utama (Karena di database bentuknya Array, kita ambil index ke-0) */}
+                        <div className="relative aspect-4/5 overflow-hidden bg-gray-50 mb-4">
+                            {/* Menangani jika gambar kosong dengan fallback */}
                             <img
-                                src={item.images[0]}
+                                src={item.images[0] || '/fallback-assets/fallback.jpeg'}
                                 alt={item.brand}
                                 className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0"
                             />
-                            {/* Gambar Saat di-hover (Sementara kita samakan dengan gambar utama) */}
                             <img
-                                src={item.images[0]}
+                                src={item.images[1] || item.images[0] || '/fallback-assets/fallback.jpeg'}
                                 alt={`${item.brand} detail`}
                                 className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100"
                             />
                         </div>
 
                         {/* Info Item */}
-                        <div className="flex flex-col space-y-1 mt-2 text-[10px] md:text-xs uppercase tracking-[0.1em]">
-                            {/* Menampilkan Nama Item dengan huruf tebal */}
+                        <div className="flex flex-col space-y-1 mt-2 text-[10px] md:text-xs uppercase tracking-widest">
                             <span className="font-bold">{item.name}</span> 
-                            
-                            {/* Menampilkan Brand dengan warna abu-abu agak gelap */}
                             <span className="text-gray-600">{item.brand}</span> 
-                            
-                            {/* Menampilkan Harga */}
+                            {/* Konversi tipe Decimal Prisma ke Number untuk format Rupiah */}
                             <span className="text-gray-400">Rp {Number(item.price).toLocaleString('id-ID')}</span>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </main>
