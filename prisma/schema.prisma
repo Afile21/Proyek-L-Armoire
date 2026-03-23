@@ -10,6 +10,7 @@ datasource db {
 // 1. Table Items (Data Induk Pakaian)
 model Item {
   id                String   @id @default(uuid())
+  name              String
   images            String[] // Array URL Cloudinary
   video_url         String?
   brand             String

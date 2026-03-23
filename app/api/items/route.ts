@@ -11,6 +11,7 @@ export async function POST(req: Request) {
         // 2. Menyimpan data ke Database PostgreSQL menggunakan Prisma
         const newItem = await prisma.item.create({
             data: {
+                name: body.name, // <--- TAMBAHAN BARU: Menyimpan nama item
                 brand: body.brand,
                 price: parseFloat(body.price),
                 category: body.category,

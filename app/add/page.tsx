@@ -8,8 +8,9 @@ export default function AddItem() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [file, setFile] = useState<File | null>(null);
 
-    // State untuk menyimpan inputan user
+    // State untuk menyimpan inputan user (DITAMBAH: name)
     const [formData, setFormData] = useState({
+        name: "", // <--- TAMBAHAN BARU
         brand: "",
         price: "",
         category: "TOP",
@@ -29,7 +30,7 @@ export default function AddItem() {
             // 1. UPLOAD KE CLOUDINARY
             const imageFormData = new FormData();
             imageFormData.append("file", file);
-            imageFormData.append("upload_preset", "larmoire_unsigned"); // Sesuai nama preset di Langkah 1
+            imageFormData.append("upload_preset", "larmoire_unsigned");
 
             const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/dpkdulvoa/image/upload`, {
                 method: "POST",
@@ -95,6 +96,17 @@ export default function AddItem() {
 
                 {/* Input Text Dasar */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                    
+                    {/* TAMBAHAN BARU: Input untuk Nama Item */}
+                    <div className="flex flex-col md:col-span-2">
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Item Name</label>
+                        <input
+                            type="text" required placeholder="e.g. OVERSIZED WOOL BLAZER"
+                            className="border-b border-gray-200 pb-3 outline-none text-sm uppercase placeholder-gray-300 focus:border-black transition-colors bg-transparent"
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
+                    </div>
+
                     <div className="flex flex-col">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Brand</label>
                         <input
