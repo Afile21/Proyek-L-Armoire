@@ -17,7 +17,7 @@ export default function Navbar() {
                         Menu
                     </button>
 
-                    <Link href="/" className="text-2xl font-bold uppercase tracking-tighter" style={{ fontFamily: 'var(--font-playfair)' }}>
+                    <Link href="/" className="font-playfair text-2xl font-bold uppercase tracking-tighter">
                         L&#39;Armoire
                     </Link>
 
@@ -36,7 +36,7 @@ export default function Navbar() {
                         Close [X]
                     </button>
 
-                    <nav className="flex flex-col space-y-8" style={{ fontFamily: 'var(--font-playfair)' }}>
+                    <nav className="font-playfair flex flex-col space-y-8">
                         <Link href="/" onClick={() => setIsOpen(false)} className="text-4xl uppercase tracking-tight hover:opacity-50 transition-opacity">
                             Home
                         </Link>

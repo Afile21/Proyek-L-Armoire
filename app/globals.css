@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* TAMBALAN: Meregistrasi custom font dari layout.tsx ke Tailwind v4 
+  agar bisa menggunakan class seperti font-sans atau font-playfair
+*/
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-playfair: var(--font-playfair), ui-serif, Georgia, serif;
+}
+
 /* Base Styling untuk Luxury Brand Vibe */
 body {
   background-color: #ffffff;

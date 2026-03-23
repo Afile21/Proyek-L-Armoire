@@ -1,10 +1,9 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="relative w-full h-screen overflow-hidden">
-      {/* Video Background 
-        Catatan: Ini menggunakan video sampel dari Pexels (gratis) yang bernuansa fashion.
-        Nantinya URL ini akan diganti dengan data dinamis dari Cloudinary.
-      */}
+      {/* Video Background */}
       <video
         autoPlay
         loop
@@ -34,9 +33,13 @@ export default function Home() {
           Autumn / Winter Archive
         </p>
 
-        <button className="border border-white/50 bg-transparent text-white px-10 py-4 text-xs tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm">
+        {/* PERBAIKAN: Mengubah <button> menjadi <Link> menuju /catalog */}
+        <Link 
+          href="/catalog" 
+          className="inline-block border border-white/50 bg-transparent text-white px-10 py-4 text-xs tracking-[0.2em] uppercase hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm"
+        >
           Enter Wardrobe
-        </button>
+        </Link>
       </div>
     </main>
   );
