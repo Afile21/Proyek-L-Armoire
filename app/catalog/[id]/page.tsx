@@ -3,6 +3,9 @@ import { PrismaClient } from "@prisma/client";
 import { notFound } from "next/navigation";
 import LogWearButton from "@/app/components/LogWearButton";
 
+// PATCH: Memastikan new Date() selalu mengambil tanggal hari ini secara real-time, bukan saat build
+export const dynamic = "force-dynamic";
+
 const prisma = new PrismaClient();
 
 // Ubah tipe params menjadi Promise
@@ -17,7 +20,7 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
         include: { wearLogs: true }
     });
 
-    // 2. Jika ID tidak ditemukan di database, lemparkan ke halaman 404
+    // Jika ID tidak ditemukan di database, lemparkan ke halaman 404
     if (!item) {
         notFound();
     }
