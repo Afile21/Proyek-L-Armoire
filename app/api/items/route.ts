@@ -35,3 +35,18 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Gagal menyimpan data pakaian" }, { status: 500 });
     }
 }
+
+// <--- TAMBAHAN BARU FASE 7: Fungsi GET untuk mengambil data --->
+export async function GET() {
+    try {
+        // Mengambil semua item dari database, diurutkan dari yang terbaru
+        const items = await prisma.item.findMany({
+            orderBy: { created_at: 'desc' }
+        });
+        
+        return NextResponse.json(items, { status: 200 });
+    } catch (error) {
+        console.error("Database Error:", error);
+        return NextResponse.json({ error: "Gagal mengambil data katalog" }, { status: 500 });
+    }
+}
