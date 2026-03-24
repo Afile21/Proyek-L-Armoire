@@ -60,6 +60,8 @@ export default function AddItem() {
 
             if (dbRes.ok) {
                 alert("Item successfully added to wardrobe!");
+                // TAMBAHKAN BARIS INI UNTUK MEMBERSIHKAN CACHE BROWSER
+                router.refresh(); 
                 router.push("/catalog"); // Otomatis kembali ke halaman katalog
             } else {
                 alert("Failed to save to database.");

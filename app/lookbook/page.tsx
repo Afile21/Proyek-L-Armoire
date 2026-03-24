@@ -71,8 +71,9 @@ export default function Lookbook() {
                     ) : (
                         canvasItems.map(item => (
                             <div key={`canvas-${item.id}`} className="relative group cursor-pointer w-40 md:w-56" onClick={() => removeFromCanvas(item.id)}>
-                                {/* Menampilkan gambar pertama dari array images */}
-                                <img src={item.images[0]} alt={item.name} className="w-full h-auto object-cover shadow-sm" />
+                                {/* PATCH: Tambahkan fallback gambar agar sama amannya dengan area Wardrobe */}
+                                <img src={item.images[0] || "/placeholder.jpg"} alt={item.name} className="w-full h-auto object-cover shadow-sm" />
+                                
                                 <div className="absolute inset-0 bg-white/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <span className="text-[10px] uppercase tracking-[0.2em] font-bold">Remove</span>
                                 </div>
