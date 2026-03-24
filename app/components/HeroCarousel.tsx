@@ -12,7 +12,7 @@ export default function HeroCarousel({ mediaUrls }: { mediaUrls: string[] }) {
         // Aturan Blueprint 5.2: Memutar visual setiap 8 detik
         const interval = setInterval(() => {
             setCurrentIndex((prevIndex) => (prevIndex + 1) % mediaUrls.length);
-        }, 8000);
+        }, 10000);
 
         return () => clearInterval(interval);
     }, [mediaUrls.length]);

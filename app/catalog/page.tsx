@@ -1,6 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link"; // Tambahkan import Link
 
+// --- TAMBAHKAN BARIS INI (DI BAWAH IMPORT, DI ATAS PRISMA CLIENT) ---
+// PATCH: Memastikan katalog selalu mengambil data terbaru dari database (menghindari stale cache)
+export const dynamic = "force-dynamic";
+// -------------------------------------------------------------------
+
 const prisma = new PrismaClient();
 
 export default async function Catalog() {
