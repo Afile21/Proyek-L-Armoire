@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { broadcastDataChange } from "../utils/broadcast";
 
 export default function AddItem() {
     const router = useRouter();
@@ -58,9 +59,14 @@ export default function AddItem() {
                 }),
             });
 
-            if (dbRes.ok) {
+            
+
+           if (dbRes.ok) {
                 alert("Item successfully added to wardrobe!");
-                // TAMBAHKAN BARIS INI UNTUK MEMBERSIHKAN CACHE BROWSER
+                
+                // 2. TAMBAHKAN BARIS INI UNTUK MENGIRIM SINYAL
+                broadcastDataChange("ADD_ITEM");
+
                 router.refresh(); 
                 router.push("/catalog"); // Otomatis kembali ke halaman katalog
             } else {

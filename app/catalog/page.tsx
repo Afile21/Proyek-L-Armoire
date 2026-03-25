@@ -1,8 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import Link from "next/link"; // Tambahkan import Link
 
-// --- TAMBAHKAN BARIS INI (DI BAWAH IMPORT, DI ATAS PRISMA CLIENT) ---
-// PATCH: Memastikan katalog selalu mengambil data terbaru dari database (menghindari stale cache)
+import AutoRefresh from "../components/AutoRefresh";
 export const dynamic = "force-dynamic";
 // -------------------------------------------------------------------
 
@@ -16,6 +15,7 @@ export default async function Catalog() {
 
     return (
         <main className="min-h-screen pt-28 px-4 md:px-8 pb-12">
+            <AutoRefresh />
             {/* Header Katalog */}
             <div className="flex justify-between items-end mb-10 border-b border-gray-100 pb-4">
                 <h1

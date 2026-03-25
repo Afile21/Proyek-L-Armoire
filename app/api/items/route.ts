@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-
+import { revalidatePath } from "next/cache";
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
@@ -27,7 +27,8 @@ export async function POST(req: Request) {
                 status: "ACTIVE"
             }
         });
-
+        // 2. TAMBAHKAN BARIS INI TEPAT SEBELUM RETURN
+        revalidatePath("/catalog");
         // 3. Mengirim respons sukses ke Frontend
         return NextResponse.json(newItem, { status: 201 });
     // ... kode di atasnya
