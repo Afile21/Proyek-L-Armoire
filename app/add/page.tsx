@@ -59,15 +59,15 @@ export default function AddItem() {
                 }),
             });
 
-            
 
-           if (dbRes.ok) {
+
+            if (dbRes.ok) {
                 alert("Item successfully added to wardrobe!");
-                
+
                 // 2. TAMBAHKAN BARIS INI UNTUK MENGIRIM SINYAL
                 broadcastDataChange("ADD_ITEM");
 
-                router.refresh(); 
+                router.refresh();
                 router.push("/catalog"); // Otomatis kembali ke halaman katalog
             } else {
                 alert("Failed to save to database.");
@@ -112,7 +112,7 @@ export default function AddItem() {
 
                 {/* Input Text Dasar */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                    
+
                     {/* TAMBAHAN BARU: Input untuk Nama Item */}
                     <div className="flex flex-col md:col-span-2">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Item Name</label>

@@ -1,11 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/app/utils/prisma";
 import Link from "next/link"; // Tambahkan import Link
 
 import AutoRefresh from "../components/AutoRefresh";
-export const dynamic = "force-dynamic";
+
 // -------------------------------------------------------------------
 
-const prisma = new PrismaClient();
 
 export default async function Catalog() {
     // 1. Mengambil data dari database, diurutkan dari yang terbaru

@@ -1,12 +1,9 @@
 import Link from "next/link";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/app/utils/prisma";
 import { notFound } from "next/navigation";
 import LogWearButton from "@/app/components/LogWearButton";
 
 // PATCH: Memastikan new Date() selalu mengambil tanggal hari ini secara real-time, bukan saat build
-export const dynamic = "force-dynamic";
-
-const prisma = new PrismaClient();
 
 // Ubah tipe params menjadi Promise
 export default async function ItemDetail({ params }: { params: Promise<{ id: string }> }) {
