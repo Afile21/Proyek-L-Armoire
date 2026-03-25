@@ -2,8 +2,9 @@ import Link from "next/link";
 import { v2 as cloudinary } from "cloudinary";
 import HeroCarousel from "./components/HeroCarousel";
 
-// Pastikan data aset selalu terbaru tanpa perlu re-build
-export const dynamic = "force-dynamic";
+// Menggunakan strategi ISR: Halaman dimuat instan dari cache.
+// Next.js akan mengecek Cloudinary di latar belakang setiap 1 jam (3600 detik) untuk pembaruan.
+export const revalidate = 3600;
 
 // Konfigurasi Cloudinary SDK
 cloudinary.config({

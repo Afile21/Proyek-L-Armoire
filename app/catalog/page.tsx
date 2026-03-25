@@ -8,9 +8,15 @@ import AutoRefresh from "../components/AutoRefresh";
 
 export default async function Catalog() {
     // 1. Mengambil data dari database, diurutkan dari yang terbaru
-    const items = await prisma.item.findMany({
+    const rawItems = await prisma.item.findMany({
         orderBy: { created_at: 'desc' }
     });
+
+    // Normalisasi tipe data Decimal Prisma menjadi Number murni agar aman dirender
+    const items = rawItems.map(item => ({
+        ...item,
+        price: Number(item.price)
+    }));
 
     return (
         <main className="min-h-screen pt-28 px-4 md:px-8 pb-12">
@@ -53,7 +59,7 @@ export default async function Catalog() {
                             <span className="font-bold">{item.name}</span> 
                             <span className="text-gray-600">{item.brand}</span> 
                             {/* Konversi tipe Decimal Prisma ke Number untuk format Rupiah */}
-                            <span className="text-gray-400">Rp {Number(item.price).toLocaleString('id-ID')}</span>
+                            <span className="text-gray-400">Rp {item.price.toLocaleString('id-ID')}</span>
                         </div>
                     </Link>
                 ))}
