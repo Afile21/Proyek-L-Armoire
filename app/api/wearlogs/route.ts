@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/utils/prisma";
+import { revalidatePath } from "next/cache"; // [BARU] Import fungsi pembersih cache Next.js
 
 export async function POST(request: Request) {
     try {
@@ -34,6 +35,11 @@ export async function POST(request: Request) {
                 item_id: itemId,
             },
         });
+
+        // [BARU] 3.5. On-Demand Revalidation: Bersihkan cache server Next.js
+        // Ini memastikan halaman katalog dan halaman detail memuat ulang kalkulasi CPW terbaru dari database
+        revalidatePath("/catalog"); 
+        revalidatePath(`/catalog/${itemId}`);
 
         // 4. Kembalikan respons sukses ke frontend
         return NextResponse.json(newWearLog, { status: 201 }); // 201 Created

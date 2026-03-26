@@ -9,9 +9,8 @@ export default function AddItem() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [file, setFile] = useState<File | null>(null);
 
-    // State untuk menyimpan inputan user (DITAMBAH: name)
     const [formData, setFormData] = useState({
-        name: "", // <--- TAMBAHAN BARU
+        name: "", 
         brand: "",
         price: "",
         category: "TOP",
@@ -20,8 +19,10 @@ export default function AddItem() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Validasi awal di sisi klien
         if (!file) {
-            alert("Please select an image first.");
+            alert("Peringatan: Silakan pilih gambar terlebih dahulu.");
             return;
         }
 
@@ -38,16 +39,16 @@ export default function AddItem() {
                 body: imageFormData,
             });
 
+            if (!cloudinaryRes.ok) {
+                throw new Error("Gagal terhubung ke server Cloudinary.");
+            }
+
             const cloudinaryData = await cloudinaryRes.json();
             const imageUrl = cloudinaryData.secure_url;
 
-            // --- TAMBAHKAN PENGECEKAN INI ---
             if (!imageUrl) {
-                alert("Gagal mengunggah gambar ke Cloudinary! Pastikan preset sudah benar.");
-                setIsSubmitting(false);
-                return; // Hentikan proses agar tidak eror masuk ke database
+                throw new Error("Gagal mengunggah gambar ke Cloudinary! Pastikan preset sudah benar.");
             }
-            // --------------------------------
 
             // 2. SIMPAN KE DATABASE (Mengirim data + URL gambar ke API kita)
             const dbRes = await fetch("/api/items", {
@@ -59,24 +60,27 @@ export default function AddItem() {
                 }),
             });
 
-
-
-            if (dbRes.ok) {
-                alert("Item successfully added to wardrobe!");
-
-                // 2. TAMBAHKAN BARIS INI UNTUK MENGIRIM SINYAL
-                broadcastDataChange("ADD_ITEM");
-
-                router.refresh();
-                router.push("/catalog"); // Otomatis kembali ke halaman katalog
-            } else {
-                alert("Failed to save to database.");
+            // [BARU] Menangkap pesan penolakan dari Backend (Fase B)
+            if (!dbRes.ok) {
+                const errorData = await dbRes.json();
+                // Melempar error spesifik dari server agar ditangkap oleh blok catch di bawah
+                throw new Error(errorData.error || "Gagal menyimpan ke database."); 
             }
 
+            // 3. JIKA SUKSES
+            alert("Berhasil! Item telah ditambahkan ke lemari Anda.");
+            broadcastDataChange("ADD_ITEM");
+            router.refresh();
+            router.push("/catalog"); 
+
         } catch (error) {
-            console.error(error);
-            alert("An error occurred during upload.");
+            // [BARU] Menampilkan pesan eror yang jelas kepada pengguna (bukan generic error)
+            console.error("Proses Upload Gagal:", error);
+            const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan saat mengunggah.";
+            alert(`Gagal: ${errorMessage}`);
+            
         } finally {
+            // Memastikan tombol kembali normal (bisa diklik) apa pun yang terjadi (sukses/gagal)
             setIsSubmitting(false);
         }
     };
@@ -113,7 +117,6 @@ export default function AddItem() {
                 {/* Input Text Dasar */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
 
-                    {/* TAMBAHAN BARU: Input untuk Nama Item */}
                     <div className="flex flex-col md:col-span-2">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Item Name</label>
                         <input
