@@ -28,7 +28,7 @@ export default function Navbar() {
 
             {/* Menu Overlay Fullscreen (Terbuka jika tombol Menu diklik) */}
             {isOpen && (
-                <div className="fixed inset-0 z-[60] bg-white flex flex-col p-8 animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-60 bg-white flex flex-col p-8 animate-in fade-in duration-300">
                     <button
                         onClick={() => setIsOpen(false)}
                         className="self-end text-xs uppercase tracking-[0.2em] hover:text-gray-500 transition-colors mb-16"
