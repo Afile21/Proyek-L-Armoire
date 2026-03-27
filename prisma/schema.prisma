@@ -17,7 +17,7 @@ model Item {
   size              String
   purchase_date     DateTime
   wash_instructions String?
-  price             Decimal  @db.Decimal(10, 2)
+  price             Decimal  @db.Decimal(14, 2)
   base_color        String
   category          Category
   material          String
