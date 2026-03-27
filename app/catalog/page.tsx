@@ -2,6 +2,7 @@ import { prisma } from "@/app/utils/prisma";
 import Link from "next/link"; // Tambahkan import Link
 
 import AutoRefresh from "../components/AutoRefresh";
+import Image from "next/image";
 
 // -------------------------------------------------------------------
 
@@ -42,14 +43,16 @@ export default async function Catalog() {
                         {/* Image Container */}
                         <div className="relative aspect-4/5 overflow-hidden bg-gray-50 mb-4">
                             {/* Menangani jika gambar kosong dengan fallback */}
-                            <img
+                            <Image
                                 src={item.images[0] || '/fallback-assets/fallback.jpeg'}
                                 alt={item.brand}
+                                fill
                                 className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0"
                             />
-                            <img
+                            <Image
                                 src={item.images[1] || item.images[0] || '/fallback-assets/fallback.jpeg'}
                                 alt={`${item.brand} detail`}
+                                fill
                                 className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out opacity-0 group-hover:opacity-100"
                             />
                         </div>
