@@ -1,55 +1,50 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/utils/prisma";
-import { revalidatePath } from "next/cache"; // [BARU] Import fungsi pembersih cache Next.js
 
-export async function POST(request: Request) {
+// Import fungsi autentikasi server
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/utils/authOptions";
+
+export async function POST(req: Request) {
     try {
-        // Parsing body dari request (dari tombol frontend)
-        const body = await request.json();
-        const { itemId } = body;
-
-        // 1. Validasi Input: Pastikan itemId benar-benar dikirim oleh client
-        if (!itemId) {
+        // 1. Verifikasi tiket sesi (JWT) dari NextAuth
+        const session = await getServerSession(authOptions);
+        
+        // Jika tidak ada sesi (belum login), tendang keluar dengan status 401
+        if (!session) {
             return NextResponse.json(
-                { error: "Item ID is required" },
-                { status: 400 } // 400 Bad Request
+                { error: "Unauthorized: Anda harus login untuk mencatat pemakaian (Log a Wear)." },
+                { status: 401 }
             );
         }
 
-        // 2. Validasi Keamanan Database: Cek apakah Item dengan ID tersebut eksis di PostgreSQL
-        const existingItem = await prisma.item.findUnique({
-            where: { id: itemId },
-        });
-
-        if (!existingItem) {
+        // 2. Ambil data yang dikirim dari Frontend (Tombol Log a Wear)
+        const body = await req.json();
+        
+        // 3. Validasi: Pastikan ID Item tidak kosong dari request frontend
+        if (!body.itemId) {
             return NextResponse.json(
-                { error: "Item not found in the database. Cannot log wear." },
-                { status: 404 } // 404 Not Found
+                { error: "Bad Request: ID Pakaian tidak ditemukan." },
+                { status: 400 }
             );
         }
 
-        // 3. Eksekusi Aman: Tambahkan catatan pemakaian (WearLog) baru
-        // Tanggal (date) akan otomatis diisi dengan waktu saat ini berkat @default(now()) di skema Prisma
-        const newWearLog = await prisma.wearLog.create({
+        // 4. Masukkan data log pemakaian ke dalam database PostgreSQL
+        const wearLog = await prisma.wearLog.create({
             data: {
-                item_id: itemId,
-            },
+                item_id: body.itemId, // Diperbaiki: Sesuai dengan skema (snake_case)
+                worn_date: body.date ? new Date(body.date) : new Date(), // Diperbaiki: Menggunakan worn_date
+            }
         });
 
-        // [BARU] 3.5. On-Demand Revalidation: Bersihkan cache server Next.js
-        // Ini memastikan halaman katalog dan halaman detail memuat ulang kalkulasi CPW terbaru dari database
-        revalidatePath("/catalog"); 
-        revalidatePath(`/catalog/${itemId}`);
-
-        // 4. Kembalikan respons sukses ke frontend
-        return NextResponse.json(newWearLog, { status: 201 }); // 201 Created
-
+        // 5. Kembalikan respons sukses
+        return NextResponse.json(wearLog, { status: 201 });
+        
     } catch (error) {
-        // Menangkap error tak terduga agar server/aplikasi tidak mati (crash)
-        console.error("FAILED TO LOG WEAR:", error);
+        console.error("Wearlog Database Error:", error);
         return NextResponse.json(
-            { error: "An unexpected error occurred on the server." },
-            { status: 500 } // 500 Internal Server Error
+            { error: "Internal Server Error: Gagal mencatat riwayat pemakaian." },
+            { status: 500 }
         );
     }
 }

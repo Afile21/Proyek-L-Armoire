@@ -2,12 +2,27 @@ import { prisma } from "@/app/utils/prisma";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
+// [BARU] 1. Import fungsi untuk mengecek sesi di sisi server
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/utils/authOptions";
+
 export async function POST(req: Request) {
     try {
+        // [BARU] 2. Cek apakah ada sesi user yang valid
+        const session = await getServerSession(authOptions);
+        
+        // Jika tidak ada sesi (belum login), tolak request dengan status 401 Unauthorized
+        if (!session) {
+            return NextResponse.json(
+                { error: "Unauthorized: Anda harus login untuk menambah item." },
+                { status: 401 }
+            );
+        }
+
         // 1. Menerima data dari Frontend
         const body = await req.json();
 
-        // [BARU] 2a. Validasi Kelengkapan Data (Mencegah Field Kosong)
+        // 2a. Validasi Kelengkapan Data (Mencegah Field Kosong)
         if (!body.name || !body.brand || !body.category || !body.season || !body.imageUrl) {
             return NextResponse.json(
                 { error: "Semua data (nama, brand, kategori, musim, gambar) wajib diisi." },
@@ -15,7 +30,7 @@ export async function POST(req: Request) {
             );
         }
 
-        // [BARU] 2b. Validasi Tipe Data Harga (Mencegah NaN masuk ke PostgreSQL)
+        // 2b. Validasi Tipe Data Harga (Mencegah NaN masuk ke PostgreSQL)
         const parsedPrice = parseFloat(body.price);
         if (isNaN(parsedPrice) || parsedPrice < 0) {
             return NextResponse.json(
@@ -29,12 +44,12 @@ export async function POST(req: Request) {
             data: {
                 name: body.name,
                 brand: body.brand,
-                price: parsedPrice, // <--- Menggunakan variabel harga yang sudah dijamin aman (bukan NaN)
+                price: parsedPrice, 
                 category: body.category,
                 season: body.season,
                 images: [body.imageUrl], 
                 
-                // Data default (sementara) untuk field wajib lainnya di database
+                // Data default (sementara)
                 size: "OS",
                 purchase_date: new Date(),
                 base_color: "BLACK",
@@ -44,17 +59,14 @@ export async function POST(req: Request) {
             }
         });
 
-        // 4. Membersihkan cache halaman katalog agar item baru langsung muncul
+        // 4. Membersihkan cache halaman katalog
         revalidatePath("/catalog");
         
         // 5. Mengirim respons sukses ke Frontend
         return NextResponse.json(newItem, { status: 201 });
 
     } catch (error) {
-        // Mengecek dengan aman apakah error memiliki pesan (message)
         const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan yang tidak diketahui";
-        
-        // Tampilkan pesan eror detail di terminal VSCode
         console.error("Database Error Detail:", errorMessage); 
         
         return NextResponse.json(
@@ -64,9 +76,17 @@ export async function POST(req: Request) {
     }
 }
 
-// Fungsi GET untuk mengambil data ke Katalog (Tetap dipertahankan)
 export async function GET() {
     try {
+        // [BARU] Cek apakah ada sesi user yang valid sebelum menampilkan katalog via API
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json(
+                { error: "Unauthorized: Anda harus login untuk melihat katalog." },
+                { status: 401 }
+            );
+        }
+
         // Mengambil semua item dari database, diurutkan dari yang terbaru
         const items = await prisma.item.findMany({
             orderBy: { created_at: 'desc' }

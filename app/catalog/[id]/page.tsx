@@ -3,11 +3,18 @@ import { prisma } from "@/app/utils/prisma";
 import { notFound } from "next/navigation";
 import LogWearButton from "@/app/components/LogWearButton";
 
+// [BARU] Import fungsi untuk mengecek sesi di server
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/utils/authOptions";
+
 // PATCH: Memastikan new Date() selalu mengambil tanggal hari ini secara real-time, bukan saat build
 
 // Ubah tipe params menjadi Promise
 export default async function ItemDetail({ params }: { params: Promise<{ id: string }> }) {
     
+    // [BARU] Cek apakah pengguna saat ini sedang login
+    const session = await getServerSession(authOptions);
+
     // 1. Await params terlebih dahulu sebelum mengambil id-nya
     const resolvedParams = await params;
 
@@ -142,8 +149,10 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                             </div>
                         </div>
 
-                        {/* Tombol Aksi Interaktif */}
-                        <LogWearButton itemId={item.id} />
+                        {/* [REVISI] Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
+                        {session && (
+                            <LogWearButton itemId={item.id} />
+                        )}
                     </div>
                 </div>
             </div>
