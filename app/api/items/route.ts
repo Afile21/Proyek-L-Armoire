@@ -2,13 +2,13 @@ import { prisma } from "@/app/utils/prisma";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
-// [BARU] 1. Import fungsi untuk mengecek sesi di sisi server
+// Import fungsi untuk mengecek sesi di sisi server
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/utils/authOptions";
 
 export async function POST(req: Request) {
     try {
-        // [BARU] 2. Cek apakah ada sesi user yang valid
+        // Cek apakah ada sesi user yang valid
         const session = await getServerSession(authOptions);
         
         // Jika tidak ada sesi (belum login), tolak request dengan status 401 Unauthorized
@@ -23,9 +23,10 @@ export async function POST(req: Request) {
         const body = await req.json();
 
         // 2a. Validasi Kelengkapan Data (Mencegah Field Kosong)
-        if (!body.name || !body.brand || !body.category || !body.season || !body.imageUrl) {
+        // [UPDATE] Menambahkan validasi untuk purchase_date
+        if (!body.name || !body.brand || !body.category || !body.season || !body.imageUrl || !body.purchase_date) {
             return NextResponse.json(
-                { error: "Semua data (nama, brand, kategori, musim, gambar) wajib diisi." },
+                { error: "Semua data wajib diisi (termasuk tanggal pembelian dan gambar)." },
                 { status: 400 } // 400 Bad Request
             );
         }
@@ -49,13 +50,14 @@ export async function POST(req: Request) {
                 season: body.season,
                 images: [body.imageUrl], 
                 
-                // Data default (sementara)
-                size: "OS",
-                purchase_date: new Date(),
-                base_color: "BLACK",
-                material: "UNKNOWN",
-                genre: "LUXURY",
-                status: "ACTIVE"
+                // --- [BARU] Menghapus data dummy dan menggunakan data asli dari Frontend ---
+                size: body.size,
+                base_color: body.base_color,
+                material: body.material,
+                genre: body.genre,
+                status: body.status,
+                // Mengonversi string format YYYY-MM-DD dari input type="date" menjadi objek Date Prisma
+                purchase_date: new Date(body.purchase_date) 
             }
         });
 
@@ -78,7 +80,7 @@ export async function POST(req: Request) {
 
 export async function GET() {
     try {
-        // [BARU] Cek apakah ada sesi user yang valid sebelum menampilkan katalog via API
+        // Cek apakah ada sesi user yang valid sebelum menampilkan katalog via API
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json(
