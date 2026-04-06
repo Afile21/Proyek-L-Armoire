@@ -58,10 +58,20 @@ export default async function Catalog() {
                         </div>
 
                         {/* Info Item */}
-                        <div className="flex flex-col space-y-1 mt-2 text-[10px] md:text-xs uppercase tracking-widest">
-                            <span className="font-bold">{item.name}</span> 
-                            <span className="text-gray-600">{item.brand}</span> 
-                            {/* Konversi tipe Decimal Prisma ke Number untuk format Rupiah */}
+                        <div className="flex flex-col space-y-1 mt-3 text-[10px] md:text-xs uppercase tracking-widest">
+                            <div className="flex justify-between items-start">
+                                <span className="font-bold pr-2">{item.name}</span>
+                                {/* [BARU] Indikator visual editorial jika item tidak ACTIVE (misal: di laundry/rusak) */}
+                                {item.status !== "ACTIVE" && (
+                                    <span className="text-[8px] border border-gray-300 text-gray-500 px-1.5 py-0.5 whitespace-nowrap">
+                                        {item.status}
+                                    </span>
+                                )}
+                            </div>
+                            
+                            {/* [BARU] Menampilkan Genre berjejer dengan Brand */}
+                            <span className="text-gray-600">{item.brand} &bull; {item.genre}</span> 
+                            
                             <span className="text-gray-400">Rp {item.price.toLocaleString('id-ID')}</span>
                         </div>
                     </Link>

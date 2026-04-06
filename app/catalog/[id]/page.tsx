@@ -105,6 +105,7 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                         </div>
 
                         {/* Tabel Atribut Database Asli */}
+                        {/* Tabel Atribut Database Asli */}
                         <div className="grid grid-cols-2 gap-y-8 text-[10px] md:text-xs uppercase tracking-widest border-y border-gray-100 py-8">
                             <div>
                                 <span className="block text-gray-400 mb-1">Color</span>
@@ -121,6 +122,18 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                             <div>
                                 <span className="block text-gray-400 mb-1">Season</span>
                                 <span>{item.season.replace('_', ' ')}</span>
+                            </div>
+                            {/* --- [BARU] Tambahan Atribut Fase 13 --- */}
+                            <div>
+                                <span className="block text-gray-400 mb-1">Genre</span>
+                                <span>{item.genre}</span>
+                            </div>
+                            <div>
+                                <span className="block text-gray-400 mb-1">Status</span>
+                                {/* Efek visual pudar jika pakaian tidak sedang aktif/bisa dipakai */}
+                                <span className={item.status !== 'ACTIVE' ? 'text-gray-400 italic' : ''}>
+                                    {item.status.replace('_', ' ')}
+                                </span>
                             </div>
                         </div>
 
