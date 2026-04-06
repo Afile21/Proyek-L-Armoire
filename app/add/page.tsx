@@ -18,7 +18,14 @@ export default function AddItem() {
         brand: "",
         price: "",
         category: "TOP",
-        season: "ALL_SEASON"
+        season: "ALL_SEASON",
+        // [BARU] Tambahan kelengkapan atribut sesuai Prisma Schema
+        size: "OS",
+        base_color: "BLACK",
+        material: "COTTON",
+        genre: "LUXURY",
+        status: "ACTIVE",
+        purchase_date: new Date().toISOString().split('T')[0] // Format YYYY-MM-DD untuk input date
     });
 
     // [BARU] Fungsi khusus untuk menangani dan memvalidasi file
@@ -142,7 +149,7 @@ export default function AddItem() {
                                 <span className="text-xs text-black group-hover:text-gray-500 transition-colors uppercase tracking-[0.2em] mb-2">
                                     + Select High-Quality Image
                                 </span>
-                                <span className="text-[10px] text-gray-400 uppercase tracking-[0.1em]">
+                                <span className="text-[10px] text-gray-400 uppercase tracking-widest">
                                     JPG, PNG, or WEBP (Max 5MB)
                                 </span>
                             </div>
@@ -186,18 +193,98 @@ export default function AddItem() {
                         />
                     </div>
 
+                    {/* --- [BARU] KELENGKAPAN ATRIBUT PRODUK --- */}
                     <div className="flex flex-col">
-                        <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Category</label>
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Size</label>
                         <select
                             className="border-b border-gray-200 pb-3 outline-none text-sm bg-transparent cursor-pointer focus:border-black transition-colors"
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                            value={formData.size}
+                            onChange={(e) => setFormData({ ...formData, size: e.target.value })}
                         >
-                            <option value="TOP">TOP</option>
-                            <option value="BOTTOM">BOTTOM</option>
-                            <option value="OUTERWEAR">OUTERWEAR</option>
-                            <option value="SHOES">SHOES</option>
-                            <option value="ACCESSORIES">ACCESSORIES</option>
+                            <option value="OS">OS (ONE SIZE)</option>
+                            <option value="XS">XS</option>
+                            <option value="S">S</option>
+                            <option value="M">M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                            <option value="CUSTOM">CUSTOM/TAILORED</option>
                         </select>
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Base Color</label>
+                        <select
+                            className="border-b border-gray-200 pb-3 outline-none text-sm bg-transparent cursor-pointer focus:border-black transition-colors"
+                            value={formData.base_color}
+                            onChange={(e) => setFormData({ ...formData, base_color: e.target.value })}
+                        >
+                            <option value="BLACK">BLACK</option>
+                            <option value="WHITE">WHITE</option>
+                            <option value="GREY">GREY</option>
+                            <option value="NAVY">NAVY</option>
+                            <option value="BEIGE">BEIGE</option>
+                            <option value="BROWN">BROWN</option>
+                            <option value="MULTICOLOR">MULTICOLOR</option>
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Material</label>
+                        <select
+                            className="border-b border-gray-200 pb-3 outline-none text-sm bg-transparent cursor-pointer focus:border-black transition-colors"
+                            value={formData.material}
+                            onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                        >
+                            <option value="COTTON">COTTON</option>
+                            <option value="WOOL">WOOL</option>
+                            <option value="SILK">SILK</option>
+                            <option value="LEATHER">LEATHER</option>
+                            <option value="DENIM">DENIM</option>
+                            <option value="LINEN">LINEN</option>
+                            <option value="SYNTHETIC">SYNTHETIC / BLEND</option>
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Genre</label>
+                        <select
+                            className="border-b border-gray-200 pb-3 outline-none text-sm bg-transparent cursor-pointer focus:border-black transition-colors"
+                            value={formData.genre}
+                            onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
+                        >
+                            <option value="LUXURY">LUXURY</option>
+                            <option value="STREETWEAR">STREETWEAR</option>
+                            <option value="VINTAGE">VINTAGE</option>
+                            <option value="AVANT-GARDE">AVANT-GARDE</option>
+                            <option value="MINIMALIST">MINIMALIST</option>
+                            <option value="CASUAL">CASUAL</option>
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Item Status</label>
+                        <select
+                            className="border-b border-gray-200 pb-3 outline-none text-sm bg-transparent cursor-pointer focus:border-black transition-colors"
+                            value={formData.status}
+                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                        >
+                            <option value="ACTIVE">ACTIVE</option>
+                            <option value="WASH">WASH (IN LAUNDRY)</option>
+                            <option value="REPAIR">REPAIR</option>
+                            <option value="ARCHIVED">ARCHIVED</option>
+                            <option value="DONATED">DONATED</option>
+                            <option value="LOST">LOST</option>
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Purchase Date</label>
+                        <input
+                            type="date" required
+                            className="border-b border-gray-200 pb-3 outline-none text-sm placeholder-gray-300 focus:border-black transition-colors bg-transparent uppercase cursor-pointer"
+                            value={formData.purchase_date}
+                            onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
+                        />
                     </div>
 
                     <div className="flex flex-col">
