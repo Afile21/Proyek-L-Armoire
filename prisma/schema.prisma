@@ -19,16 +19,26 @@ model Item {
   wash_instructions String?
   price             Decimal  @db.Decimal(14, 2)
   base_color        String
-  category          Category
   material          String
   genre             String
   season            Season
   status            Status
   created_at        DateTime @default(now())
 
+  // Relasi Kategori Baru
+  categoryId        String
+  category          Category @relation(fields: [categoryId], references: [id])
+
   // Relasi
-  wearLogs WearLog[]
-  outfits  OutfitItem[]
+  wearLogs          WearLog[]
+  outfits           OutfitItem[]
+}
+
+// 1.5 Table Category (Baru)
+model Category {
+  id    String @id @default(uuid())
+  name  String @unique
+  items Item[]
 }
 
 // 2. Table WearLogs (Untuk menghitung CPW)
@@ -63,14 +73,6 @@ model OutfitItem {
   @@id([outfit_id, item_id]) // Composite primary key
 }
 
-// Enumerations (Pilihan Tetap)
-enum Category {
-  TOP
-  BOTTOM
-  OUTERWEAR
-  SHOES
-  ACCESSORIES
-}
 
 enum Season {
   SPRING
