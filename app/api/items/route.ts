@@ -1,102 +1,92 @@
-import { prisma } from "@/app/utils/prisma";
-import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/utils/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/utils/authOptions';
+import { Season, Status } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
 
-// Import fungsi untuk mengecek sesi di sisi server
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/utils/authOptions";
+// Strict Type untuk Payload
+interface ItemPayload {
+    name: string;
+    images: string[];
+    video_url?: string;
+    brand: string;
+    size: string;
+    purchase_date: string;
+    wash_instructions?: string;
+    price: number;
+    base_color: string;
+    material: string;
+    genre: string;
+    season: Season;
+    status: Status;
+    categoryId: string; // Relasi ke model Category
+}
 
-export async function POST(req: Request) {
+export async function GET(): Promise<NextResponse> {
     try {
-        // Cek apakah ada sesi user yang valid
         const session = await getServerSession(authOptions);
-        
-        // Jika tidak ada sesi (belum login), tolak request dengan status 401 Unauthorized
         if (!session) {
-            return NextResponse.json(
-                { error: "Unauthorized: Anda harus login untuk menambah item." },
-                { status: 401 }
-            );
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // 1. Menerima data dari Frontend
-        const body = await req.json();
-
-        // 2a. Validasi Kelengkapan Data (Mencegah Field Kosong)
-        // [UPDATE] Menambahkan validasi untuk purchase_date
-        if (!body.name || !body.brand || !body.category || !body.season || !body.imageUrl || !body.purchase_date) {
-            return NextResponse.json(
-                { error: "Semua data wajib diisi (termasuk tanggal pembelian dan gambar)." },
-                { status: 400 } // 400 Bad Request
-            );
-        }
-
-        // 2b. Validasi Tipe Data Harga (Mencegah NaN masuk ke PostgreSQL)
-        const parsedPrice = parseFloat(body.price);
-        if (isNaN(parsedPrice) || parsedPrice < 0) {
-            return NextResponse.json(
-                { error: "Format harga tidak valid. Harus berupa angka positif." },
-                { status: 400 } // 400 Bad Request
-            );
-        }
-
-        // 3. Menyimpan data ke Database PostgreSQL menggunakan Prisma
-        const newItem = await prisma.item.create({
-            data: {
-                name: body.name,
-                brand: body.brand,
-                price: parsedPrice, 
-                category: body.category,
-                season: body.season,
-                images: [body.imageUrl], 
-                
-                // --- [BARU] Menghapus data dummy dan menggunakan data asli dari Frontend ---
-                size: body.size,
-                base_color: body.base_color,
-                material: body.material,
-                genre: body.genre,
-                status: body.status,
-                // Mengonversi string format YYYY-MM-DD dari input type="date" menjadi objek Date Prisma
-                purchase_date: new Date(body.purchase_date) 
-            }
+        const items = await prisma.item.findMany({
+            orderBy: { created_at: 'desc' },
+            include: { category: true }, // Mengambil data nama kategori juga
         });
 
-        // 4. Membersihkan cache halaman katalog
-        revalidatePath("/catalog");
-        
-        // 5. Mengirim respons sukses ke Frontend
-        return NextResponse.json(newItem, { status: 201 });
-
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Terjadi kesalahan yang tidak diketahui";
-        console.error("Database Error Detail:", errorMessage); 
-        
-        return NextResponse.json(
-            { error: "Gagal menyimpan data pakaian", detail: errorMessage }, 
-            { status: 500 }
-        );
+        return NextResponse.json(items, { status: 200 });
+    } catch (error: unknown) {
+        console.error('Error fetching items:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
-export async function GET() {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
-        // Cek apakah ada sesi user yang valid sebelum menampilkan katalog via API
         const session = await getServerSession(authOptions);
         if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = (await request.json()) as Partial<ItemPayload>;
+
+        // Validasi Kelengkapan (Strict)
+        if (!body.name || !body.categoryId || body.price === undefined) {
             return NextResponse.json(
-                { error: "Unauthorized: Anda harus login untuk melihat katalog." },
-                { status: 401 }
+                { error: 'Nama, Kategori, dan Harga wajib diisi.' },
+                { status: 400 }
             );
         }
 
-        // Mengambil semua item dari database, diurutkan dari yang terbaru
-        const items = await prisma.item.findMany({
-            orderBy: { created_at: 'desc' }
+        const newItem = await prisma.item.create({
+            data: {
+                name: body.name,
+                images: body.images || [],
+                video_url: body.video_url || null,
+                brand: body.brand || 'Unknown',
+                size: body.size || 'OS',
+                purchase_date: body.purchase_date ? new Date(body.purchase_date) : new Date(),
+                wash_instructions: body.wash_instructions || null,
+                price: body.price,
+                base_color: body.base_color || '#000000',
+                material: body.material || 'Unknown',
+                genre: body.genre || 'General',
+                season: body.season as Season,
+                status: body.status as Status,
+                categoryId: body.categoryId,
+            },
         });
-        
-        return NextResponse.json(items, { status: 200 });
-    } catch (error) {
-        console.error("Database Error:", error);
-        return NextResponse.json({ error: "Gagal mengambil data katalog" }, { status: 500 });
+
+        // Update Cache
+        revalidatePath("/catalog");
+
+        return NextResponse.json(newItem, { status: 201 });
+    } catch (error: unknown) {
+        console.error('Error creating item:', error);
+        return NextResponse.json(
+            { error: 'Gagal menyimpan data ke database.' },
+            { status: 500 }
+        );
     }
 }
