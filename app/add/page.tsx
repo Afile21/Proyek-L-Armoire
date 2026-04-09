@@ -114,7 +114,7 @@ export default function AddItem() {
             const payload = {
                 ...formData,
                 price: parseFloat(formData.price),
-                imageUrl: [imageUrl] // Sesuaikan dengan penanganan di API backend Anda jika dibutuhkan mapping ke 'images' array
+                images: [imageUrl] // Sesuaikan dengan penanganan di API backend Anda jika dibutuhkan mapping ke 'images' array
             };
 
             const dbRes = await fetch("/api/items", {
