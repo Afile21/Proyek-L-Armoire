@@ -26,18 +26,19 @@ model Item {
   created_at        DateTime @default(now())
 
   // Relasi Kategori Baru
-  categoryId        String
-  category          Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
   // Relasi
-  wearLogs          WearLog[]
-  outfits           OutfitItem[]
+  wearLogs WearLog[]
+  outfits  OutfitItem[]
 }
 
 // 1.5 Table Category (Baru)
 model Category {
-  id    String @id @default(uuid())
-  name  String @unique
+  id    String   @id @default(uuid())
+  name  String   @unique
+  sizes String[] // Tambahan array ukuran spesifik kategori
   items Item[]
 }
 
@@ -45,10 +46,10 @@ model Category {
 model WearLog {
   id        String   @id @default(uuid())
   worn_date DateTime @default(now())
-  
+
   // Relasi ke Item
-  item_id   String
-  item      Item     @relation(fields: [item_id], references: [id], onDelete: Cascade)
+  item_id String
+  item    Item   @relation(fields: [item_id], references: [id], onDelete: Cascade)
 }
 
 // 3. Table Outfits (Lookbook)
@@ -72,7 +73,6 @@ model OutfitItem {
 
   @@id([outfit_id, item_id]) // Composite primary key
 }
-
 
 enum Season {
   SPRING
