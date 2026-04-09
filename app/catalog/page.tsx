@@ -1,16 +1,14 @@
 import { prisma } from "@/app/utils/prisma";
-import Link from "next/link"; // Tambahkan import Link
-
+import Link from "next/link"; 
 import AutoRefresh from "../components/AutoRefresh";
 import Image from "next/image";
 
-// -------------------------------------------------------------------
-
-
 export default async function Catalog() {
     // 1. Mengambil data dari database, diurutkan dari yang terbaru
+    // [UPDATE FASE 14] Include category untuk mengambil nama kategori
     const rawItems = await prisma.item.findMany({
-        orderBy: { created_at: 'desc' }
+        orderBy: { created_at: 'desc' },
+        include: { category: true } 
     });
 
     // Normalisasi tipe data Decimal Prisma menjadi Number murni agar aman dirender
@@ -61,7 +59,7 @@ export default async function Catalog() {
                         <div className="flex flex-col space-y-1 mt-3 text-[10px] md:text-xs uppercase tracking-widest">
                             <div className="flex justify-between items-start">
                                 <span className="font-bold pr-2">{item.name}</span>
-                                {/* [BARU] Indikator visual editorial jika item tidak ACTIVE (misal: di laundry/rusak) */}
+                                {/* Indikator visual editorial jika item tidak ACTIVE (misal: di laundry/rusak) */}
                                 {item.status !== "ACTIVE" && (
                                     <span className="text-[8px] border border-gray-300 text-gray-500 px-1.5 py-0.5 whitespace-nowrap">
                                         {item.status}
@@ -69,8 +67,10 @@ export default async function Catalog() {
                                 )}
                             </div>
                             
-                            {/* [BARU] Menampilkan Genre berjejer dengan Brand */}
-                            <span className="text-gray-600">{item.brand} &bull; {item.genre}</span> 
+                            {/* [UPDATE FASE 14] Menambahkan Category Name berjejer dengan Brand & Genre */}
+                            <span className="text-gray-600">
+                                {item.category?.name} &bull; {item.brand} &bull; {item.genre}
+                            </span> 
                             
                             <span className="text-gray-400">Rp {item.price.toLocaleString('id-ID')}</span>
                         </div>

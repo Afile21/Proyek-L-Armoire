@@ -3,25 +3,26 @@ import { prisma } from "@/app/utils/prisma";
 import { notFound } from "next/navigation";
 import LogWearButton from "@/app/components/LogWearButton";
 
-// [BARU] Import fungsi untuk mengecek sesi di server
+// Import fungsi untuk mengecek sesi di server
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/utils/authOptions";
-
-// PATCH: Memastikan new Date() selalu mengambil tanggal hari ini secara real-time, bukan saat build
 
 // Ubah tipe params menjadi Promise
 export default async function ItemDetail({ params }: { params: Promise<{ id: string }> }) {
     
-    // [BARU] Cek apakah pengguna saat ini sedang login
+    // Cek apakah pengguna saat ini sedang login
     const session = await getServerSession(authOptions);
 
     // 1. Await params terlebih dahulu sebelum mengambil id-nya
     const resolvedParams = await params;
 
-    // 2. Ambil data item spesifik beserta relasi WearLogs-nya menggunakan resolvedParams.id
+    // 2. Ambil data item spesifik beserta relasi WearLogs dan Category (FASE 14)
     const item = await prisma.item.findUnique({
         where: { id: resolvedParams.id },
-        include: { wearLogs: true }
+        include: { 
+            wearLogs: true,
+            category: true // [UPDATE FASE 14]
+        }
     });
 
     // Jika ID tidak ditemukan di database, lemparkan ke halaman 404
@@ -32,7 +33,6 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
     // 3. Logika Format Harga & CPW (Cost Per Wear)
     const priceNumber = Number(item.price);
     const wearsCount = item.wearLogs.length;
-    // Jika belum pernah dipakai, CPW sama dengan harga awal. Jika sudah, bagi harga dengan jumlah pakai.
     const cpw = wearsCount > 0 ? Math.round(priceNumber / wearsCount) : priceNumber;
 
     const formattedPrice = new Intl.NumberFormat('id-ID', {
@@ -96,15 +96,15 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                                 {item.name}
                             </h1>
                             
+                            {/* [UPDATE FASE 14] Render nama dari relasi tabel Kategori */}
                             <p className="text-xs tracking-[0.3em] text-gray-400 mt-4">
-                                CATEGORY: {item.category}
+                                CATEGORY: {item.category?.name}
                             </p>
                             <p className="text-xl mt-6 font-medium">
                                 {formattedPrice}
                             </p>
                         </div>
 
-                        {/* Tabel Atribut Database Asli */}
                         {/* Tabel Atribut Database Asli */}
                         <div className="grid grid-cols-2 gap-y-8 text-[10px] md:text-xs uppercase tracking-widest border-y border-gray-100 py-8">
                             <div>
@@ -123,7 +123,6 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                                 <span className="block text-gray-400 mb-1">Season</span>
                                 <span>{item.season.replace('_', ' ')}</span>
                             </div>
-                            {/* --- [BARU] Tambahan Atribut Fase 13 --- */}
                             <div>
                                 <span className="block text-gray-400 mb-1">Genre</span>
                                 <span>{item.genre}</span>
@@ -134,6 +133,11 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                                 <span className={item.status !== 'ACTIVE' ? 'text-gray-400 italic' : ''}>
                                     {item.status.replace('_', ' ')}
                                 </span>
+                            </div>
+                            {/* --- [UPDATE FASE 14] Wash Instructions --- */}
+                            <div className="col-span-2">
+                                <span className="block text-gray-400 mb-1">Care & Wash Instructions</span>
+                                <span>{item.wash_instructions || "SEE CARE LABEL"}</span>
                             </div>
                         </div>
 
@@ -162,7 +166,7 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                             </div>
                         </div>
 
-                        {/* [REVISI] Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
+                        {/* Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
                         {session && (
                             <LogWearButton itemId={item.id} />
                         )}
