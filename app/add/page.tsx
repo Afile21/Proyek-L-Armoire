@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 interface Category {
     id: string;
     name: string;
+    sizes: string[]; // Tambahan array sizes dari backend
 }
 
 export default function AddItem() {
@@ -19,7 +20,7 @@ export default function AddItem() {
     // State untuk Category Dinamis
     const [categories, setCategories] = useState<Category[]>([]);
 
-    // State untuk file dan preview (DIKEMBALIKAN)
+    // State untuk file dan preview
     const [file, setFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -27,14 +28,14 @@ export default function AddItem() {
         name: "",
         brand: "",
         price: "",
-        categoryId: "", // Menggunakan categoryId dinamis
+        categoryId: "", 
         season: "ALL_SEASON",
-        size: "OS",
-        base_color: "#000000", // Diubah untuk color picker
-        material: "", // Diubah menjadi text kosong
-        genre: "", // Diubah menjadi text kosong
+        size: "", // Diubah menjadi kosong secara default agar user wajib memilih
+        base_color: "#000000", 
+        material: "", 
+        genre: "", 
         status: "ACTIVE",
-        wash_instructions: "", // Atribut baru
+        wash_instructions: "", 
         purchase_date: new Date().toISOString().split('T')[0]
     });
 
@@ -54,7 +55,10 @@ export default function AddItem() {
         fetchCategories();
     }, []);
 
-    // Fungsi file handle (DIKEMBALIKAN)
+    // Derived state: Dapatkan kategori yang sedang dipilih saat ini
+    const selectedCategory = categories.find(cat => cat.id === formData.categoryId);
+    const availableSizes = selectedCategory?.sizes || [];
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (!selectedFile) return;
@@ -86,12 +90,15 @@ export default function AddItem() {
             toast.error("Peringatan: Kategori wajib dipilih.");
             return;
         }
+        if (!formData.size) {
+            toast.error("Peringatan: Ukuran (Size) wajib dipilih.");
+            return;
+        }
 
         setIsSubmitting(true);
         const loadingToast = toast.loading("Uploading to Cloud...");
 
         try {
-            // 1. Upload Cloudinary (Logika asli dipertahankan)
             const imageFormData = new FormData();
             imageFormData.append("file", file);
             imageFormData.append("upload_preset", "larmoire_unsigned");
@@ -110,11 +117,10 @@ export default function AddItem() {
 
             toast.loading("Saving to Wardrobe...", { id: loadingToast });
 
-            // 2. Simpan ke Database
             const payload = {
                 ...formData,
                 price: parseFloat(formData.price),
-                images: [imageUrl] // Sesuaikan dengan penanganan di API backend Anda jika dibutuhkan mapping ke 'images' array
+                images: [imageUrl] 
             };
 
             const dbRes = await fetch("/api/items", {
@@ -153,11 +159,9 @@ export default function AddItem() {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-12">
-                {/* Upload Foto dengan Live Preview (DIKEMBALIKAN UTUH) */}
                 <div className="space-y-4">
                     <label className="block text-[10px] uppercase tracking-[0.2em] text-gray-400">Image Upload</label>
                     <label className="relative flex flex-col items-center justify-center w-full h-72 border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group overflow-hidden">
-
                         {previewUrl ? (
                             <>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -178,7 +182,6 @@ export default function AddItem() {
                                 </span>
                             </div>
                         )}
-
                         <input
                             type="file"
                             accept="image/jpeg, image/png, image/webp"
@@ -188,7 +191,6 @@ export default function AddItem() {
                     </label>
                 </div>
 
-                {/* Input Text Dasar */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
                     <div className="flex flex-col md:col-span-2">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Item Name</label>
@@ -217,13 +219,12 @@ export default function AddItem() {
                         />
                     </div>
 
-                    {/* FETCH CATEGORY DINAMIS */}
                     <div className="flex flex-col">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Category</label>
                         <select
                             className="border-b border-gray-200 pb-3 outline-none text-sm bg-transparent cursor-pointer focus:border-black transition-colors uppercase"
                             value={formData.categoryId}
-                            onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, size: "" })} // Reset size saat kategori ganti
                             required
                         >
                             <option value="" disabled>SELECT CATEGORY</option>
@@ -236,21 +237,21 @@ export default function AddItem() {
                     <div className="flex flex-col">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Size</label>
                         <select
-                            className="border-b border-gray-200 pb-3 outline-none text-sm bg-transparent cursor-pointer focus:border-black transition-colors"
+                            className="border-b border-gray-200 pb-3 outline-none text-sm bg-transparent focus:border-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase"
                             value={formData.size}
                             onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                            disabled={!formData.categoryId || availableSizes.length === 0} // Disable jika kategori belum dipilih
+                            required
                         >
-                            <option value="OS">OS (ONE SIZE)</option>
-                            <option value="XS">XS</option>
-                            <option value="S">S</option>
-                            <option value="M">M</option>
-                            <option value="L">L</option>
-                            <option value="XL">XL</option>
-                            <option value="CUSTOM">CUSTOM/TAILORED</option>
+                            <option value="" disabled>
+                                {!formData.categoryId ? "SELECT CATEGORY FIRST" : "SELECT SIZE"}
+                            </option>
+                            {availableSizes.map((s) => (
+                                <option key={s} value={s}>{s}</option>
+                            ))}
                         </select>
                     </div>
 
-                    {/* BASE COLOR DIUBAH JADI COLOR PICKER (Estetik) */}
                     <div className="flex flex-col">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Base Color</label>
                         <div className="flex items-center gap-4 border-b border-gray-200 pb-2 transition-colors focus-within:border-black">
@@ -266,7 +267,6 @@ export default function AddItem() {
                         </div>
                     </div>
 
-                    {/* MATERIAL DIUBAH JADI TEXT */}
                     <div className="flex flex-col">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Material</label>
                         <input
@@ -276,7 +276,6 @@ export default function AddItem() {
                         />
                     </div>
 
-                    {/* GENRE DIUBAH JADI TEXT */}
                     <div className="flex flex-col">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Genre / Style</label>
                         <input
@@ -326,7 +325,6 @@ export default function AddItem() {
                         </select>
                     </div>
 
-                    {/* WASH INSTRUCTIONS BARU */}
                     <div className="flex flex-col md:col-span-2">
                         <label className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-3">Wash Instructions</label>
                         <input
