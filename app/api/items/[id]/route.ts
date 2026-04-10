@@ -101,37 +101,26 @@ export async function PUT(
         }
 
         // ====================================================================
-        // RADAR DEBUGGING CLOUDINARY
+        // CLEAN PRODUCTION CLOUDINARY DELETE
         // ====================================================================
         if (body.images && existingItem.images) {
-            console.log("\n=== 🕵️ DEBUGGING CLOUDINARY MULAI ===");
             const oldImages = existingItem.images;
             const newImages = body.images;
 
-            console.log("1. Gambar DB (Lama) :", oldImages);
-            console.log("2. Gambar Form (Baru):", newImages);
-
             const imagesToDelete = oldImages.filter((oldImg) => !newImages.includes(oldImg));
-            console.log("3. Target Dihapus   :", imagesToDelete);
 
             for (const imgUrl of imagesToDelete) {
-                console.log(`\n➡ Memproses URL: ${imgUrl}`);
                 const publicId = extractPublicIdFromUrl(imgUrl);
-                console.log(`➡ Hasil Ekstraksi public_id: ${publicId}`);
-
                 if (publicId) {
                     try {
-                        // Menambahkan await dan menangkap response asli dari Cloudinary
-                        const result = await cloudinary.uploader.destroy(publicId);
-                        console.log(`✅ Respons Cloudinary untuk [${publicId}]:`, result);
+                        await cloudinary.uploader.destroy(publicId);
+                        // Cukup 1 baris log ringkas untuk memantau aktivitas server
+                        console.log(`[Cloudinary] Aset lama dihapus: ${publicId}`);
                     } catch (cloudinaryError: unknown) {
-                        console.error(`❌ Gagal menghapus [${publicId}]:`, cloudinaryError);
+                        console.error(`[Cloudinary] Gagal menghapus ${publicId}:`, cloudinaryError);
                     }
-                } else {
-                    console.log("⚠ public_id null, penghapusan DIBATALKAN untuk URL ini.");
                 }
             }
-            console.log("=== 🕵️ DEBUGGING SELESAI ===\n");
         }
         // ====================================================================
 
