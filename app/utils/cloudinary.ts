@@ -1,9 +1,10 @@
 import { v2 as cloudinary } from 'cloudinary';
 
 // Konfigurasi Cloudinary SDK untuk backend
+// Kita gunakan operator || (OR) agar dia mengenali versi NEXT_PUBLIC maupun versi biasa
 cloudinary.config({
-    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
+    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 

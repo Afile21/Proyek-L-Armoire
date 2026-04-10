@@ -5,17 +5,14 @@ import { authOptions } from '@/app/utils/authOptions';
 import { Season, Status, Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
-// [TAMBAHAN]: Import utilitas Cloudinary
 import cloudinary, { extractPublicIdFromUrl } from '@/app/utils/cloudinary';
 
-// Strict Type untuk parameter Next.js App Router (Promise untuk Next.js 15+)
 interface RouteParams {
     params: Promise<{
         id: string;
     }>;
 }
 
-// Strict Type untuk payload Update
 interface ItemUpdatePayload {
     name?: string;
     images?: string[];
@@ -33,15 +30,11 @@ interface ItemUpdatePayload {
     categoryId?: string;
 }
 
-// ============================================================================
-// 1. METHOD GET — Menarik data awal untuk form Edit (Aman & Lengkap)
-// ============================================================================
 export async function GET(
     request: NextRequest,
     { params }: RouteParams
 ): Promise<NextResponse> {
     try {
-        // [FITUR KEAMANAN]: Hanya user yang login yang bisa mengambil data
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -54,7 +47,6 @@ export async function GET(
             return NextResponse.json({ error: 'ID Item tidak valid.' }, { status: 400 });
         }
 
-        // [FITUR KELENGKAPAN DATA]: Menarik data item beserta data relasi kategorinya
         const item = await prisma.item.findUnique({
             where: { id },
             include: { category: true } 
@@ -75,15 +67,11 @@ export async function GET(
     }
 }
 
-// ============================================================================
-// 2. METHOD PUT — Menyimpan perubahan data dari form Edit
-// ============================================================================
 export async function PUT(
     request: NextRequest,
     { params }: RouteParams
 ): Promise<NextResponse> {
     try {
-        // [FITUR KEAMANAN]: Hanya user yang login yang bisa mengubah data
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -113,26 +101,37 @@ export async function PUT(
         }
 
         // ====================================================================
-        // [FITUR BARU]: PENGHAPUSAN GAMBAR LAMA DI CLOUDINARY
+        // RADAR DEBUGGING CLOUDINARY
         // ====================================================================
         if (body.images && existingItem.images) {
+            console.log("\n=== 🕵️ DEBUGGING CLOUDINARY MULAI ===");
             const oldImages = existingItem.images;
             const newImages = body.images;
 
-            // Cari gambar lama yang tidak ada di dalam array gambar baru
+            console.log("1. Gambar DB (Lama) :", oldImages);
+            console.log("2. Gambar Form (Baru):", newImages);
+
             const imagesToDelete = oldImages.filter((oldImg) => !newImages.includes(oldImg));
+            console.log("3. Target Dihapus   :", imagesToDelete);
 
             for (const imgUrl of imagesToDelete) {
+                console.log(`\n➡ Memproses URL: ${imgUrl}`);
                 const publicId = extractPublicIdFromUrl(imgUrl);
+                console.log(`➡ Hasil Ekstraksi public_id: ${publicId}`);
+
                 if (publicId) {
                     try {
-                        await cloudinary.uploader.destroy(publicId);
-                        console.log(`[Cloudinary] Berhasil menghapus gambar lama: ${publicId}`);
+                        // Menambahkan await dan menangkap response asli dari Cloudinary
+                        const result = await cloudinary.uploader.destroy(publicId);
+                        console.log(`✅ Respons Cloudinary untuk [${publicId}]:`, result);
                     } catch (cloudinaryError: unknown) {
-                        console.error(`[Cloudinary] Gagal menghapus gambar lama ${publicId}:`, cloudinaryError);
+                        console.error(`❌ Gagal menghapus [${publicId}]:`, cloudinaryError);
                     }
+                } else {
+                    console.log("⚠ public_id null, penghapusan DIBATALKAN untuk URL ini.");
                 }
             }
+            console.log("=== 🕵️ DEBUGGING SELESAI ===\n");
         }
         // ====================================================================
 
@@ -161,7 +160,6 @@ export async function PUT(
             include: { category: true },
         });
 
-        // [INVALIDASI CACHE]: Memastikan data terbaru langsung muncul di halaman katalog
         revalidatePath('/catalog');
         revalidatePath(`/catalog/${id}`);
 
