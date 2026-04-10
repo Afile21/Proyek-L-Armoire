@@ -5,6 +5,9 @@ import { authOptions } from '@/app/utils/authOptions';
 import { Season, Status, Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
+// [TAMBAHAN]: Import utilitas Cloudinary
+import cloudinary, { extractPublicIdFromUrl } from '@/app/utils/cloudinary';
+
 // Strict Type untuk parameter Next.js App Router (Promise untuk Next.js 15+)
 interface RouteParams {
     params: Promise<{
@@ -108,6 +111,30 @@ export async function PUT(
                 { status: 404 }
             );
         }
+
+        // ====================================================================
+        // [FITUR BARU]: PENGHAPUSAN GAMBAR LAMA DI CLOUDINARY
+        // ====================================================================
+        if (body.images && existingItem.images) {
+            const oldImages = existingItem.images;
+            const newImages = body.images;
+
+            // Cari gambar lama yang tidak ada di dalam array gambar baru
+            const imagesToDelete = oldImages.filter((oldImg) => !newImages.includes(oldImg));
+
+            for (const imgUrl of imagesToDelete) {
+                const publicId = extractPublicIdFromUrl(imgUrl);
+                if (publicId) {
+                    try {
+                        await cloudinary.uploader.destroy(publicId);
+                        console.log(`[Cloudinary] Berhasil menghapus gambar lama: ${publicId}`);
+                    } catch (cloudinaryError: unknown) {
+                        console.error(`[Cloudinary] Gagal menghapus gambar lama ${publicId}:`, cloudinaryError);
+                    }
+                }
+            }
+        }
+        // ====================================================================
 
         const updateData: Prisma.ItemUpdateInput = {
             ...(body.name && { name: body.name }),
