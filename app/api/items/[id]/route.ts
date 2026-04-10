@@ -5,14 +5,14 @@ import { authOptions } from '@/app/utils/authOptions';
 import { Season, Status, Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
-// Strict Type untuk parameter Next.js App Router
+// Strict Type untuk parameter Next.js App Router (Promise untuk Next.js 15+)
 interface RouteParams {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
-// Strict Type untuk payload Update (semua field bersifat opsional karena ini PUT/PATCH)
+// Strict Type untuk payload Update
 interface ItemUpdatePayload {
     name?: string;
     images?: string[];
@@ -30,18 +30,65 @@ interface ItemUpdatePayload {
     categoryId?: string;
 }
 
-export async function PUT(
+// ============================================================================
+// 1. METHOD GET — Menarik data awal untuk form Edit (Aman & Lengkap)
+// ============================================================================
+export async function GET(
     request: NextRequest,
     { params }: RouteParams
 ): Promise<NextResponse> {
     try {
-        // 1. Verifikasi Sesi (Wajib Login)
+        // [FITUR KEAMANAN]: Hanya user yang login yang bisa mengambil data
         const session = await getServerSession(authOptions);
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id } = params;
+        const resolvedParams = await params;
+        const { id } = resolvedParams;
+
+        if (!id) {
+            return NextResponse.json({ error: 'ID Item tidak valid.' }, { status: 400 });
+        }
+
+        // [FITUR KELENGKAPAN DATA]: Menarik data item beserta data relasi kategorinya
+        const item = await prisma.item.findUnique({
+            where: { id },
+            include: { category: true } 
+        });
+
+        if (!item) {
+            return NextResponse.json({ error: 'Item pakaian tidak ditemukan.' }, { status: 404 });
+        }
+
+        return NextResponse.json(item, { status: 200 });
+
+    } catch (error: unknown) {
+        console.error('Error fetching item [GET /api/items/[id]]:', error);
+        return NextResponse.json(
+            { error: 'Internal Server Error. Gagal mengambil data.' },
+            { status: 500 }
+        );
+    }
+}
+
+// ============================================================================
+// 2. METHOD PUT — Menyimpan perubahan data dari form Edit
+// ============================================================================
+export async function PUT(
+    request: NextRequest,
+    { params }: RouteParams
+): Promise<NextResponse> {
+    try {
+        // [FITUR KEAMANAN]: Hanya user yang login yang bisa mengubah data
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const resolvedParams = await params;
+        const { id } = resolvedParams;
+
         if (!id) {
             return NextResponse.json(
                 { error: 'ID Item tidak ditemukan dalam parameter.' },
@@ -49,10 +96,8 @@ export async function PUT(
             );
         }
 
-        // 2. Parse Payload
         const body = (await request.json()) as ItemUpdatePayload;
 
-        // 3. Pengecekan Eksistensi Data di Database
         const existingItem = await prisma.item.findUnique({
             where: { id },
         });
@@ -64,8 +109,6 @@ export async function PUT(
             );
         }
 
-        // 4. Membangun objek data yang akan diupdate secara dinamis dan strict
-        // Prisma secara otomatis mengabaikan field yang bernilai `undefined`
         const updateData: Prisma.ItemUpdateInput = {
             ...(body.name && { name: body.name }),
             ...(body.images && { images: body.images }),
@@ -85,18 +128,16 @@ export async function PUT(
             }),
         };
 
-        // 5. Eksekusi Update ke Database
         const updatedItem = await prisma.item.update({
             where: { id },
             data: updateData,
-            include: { category: true }, // Return dengan data kategori
+            include: { category: true },
         });
 
-        // 6. Invalidasi Cache agar tampilan Katalog dan Detail langsung ter-refresh
+        // [INVALIDASI CACHE]: Memastikan data terbaru langsung muncul di halaman katalog
         revalidatePath('/catalog');
         revalidatePath(`/catalog/${id}`);
 
-        // 7. Berikan Response
         return NextResponse.json(updatedItem, { status: 200 });
 
     } catch (error: unknown) {
