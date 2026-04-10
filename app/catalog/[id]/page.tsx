@@ -168,7 +168,17 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
 
                         {/* Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
                         {session && (
-                            <LogWearButton itemId={item.id} />
+                            <div className="space-y-4">
+                                <LogWearButton itemId={item.id} />
+                                
+                                {/* --- [UPDATE FASE 14.3] Tombol Edit (Secondary Button) --- */}
+                                <Link
+                                    href={`/catalog/${resolvedParams.id}/edit`}
+                                    className="flex w-full items-center justify-center border border-gray-200 bg-transparent text-gray-500 py-4 text-[10px] tracking-[0.2em] uppercase hover:border-black hover:text-black transition-colors duration-300"
+                                >
+                                    Edit Item
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </div>
