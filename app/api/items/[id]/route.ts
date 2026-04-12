@@ -164,34 +164,29 @@ export async function PUT(
 }
 
 export async function DELETE(
-    request: Request,
-    { params }: { params: { id: string } }
+    request: NextRequest,
+    { params }: RouteParams
 ) {
     try {
-        // 1. Verifikasi Autentikasi
         const session = await getServerSession(authOptions);
 
-        if (!session || !session.user || !session.user.email) {
+        if (!session) {
             return NextResponse.json(
                 { success: false, message: "Unauthorized: Silakan login terlebih dahulu." },
                 { status: 401 }
             );
         }
 
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-        });
+        const resolvedParams = await params;
+        const itemId = resolvedParams.id;
 
-        if (!user) {
+        if (!itemId) {
             return NextResponse.json(
-                { success: false, message: "User not found." },
-                { status: 404 }
+                { success: false, message: "ID Item tidak valid." },
+                { status: 400 }
             );
         }
 
-        const itemId = params.id;
-
-        // 2. Ambil data item untuk memastikan eksistensi dan kepemilikan
         const existingItem = await prisma.item.findUnique({
             where: { id: itemId },
         });
@@ -203,29 +198,25 @@ export async function DELETE(
             );
         }
 
-        if (existingItem.userId !== user.id) {
-            return NextResponse.json(
-                { success: false, message: "Forbidden: Anda tidak memiliki akses untuk menghapus item ini." },
-                { status: 403 }
-            );
-        }
-
-        // 3. Hapus gambar dari Cloudinary jika ada
-        if (existingItem.imageUrl) {
-            const publicId = extractPublicIdFromUrl(existingItem.imageUrl);
-            if (publicId) {
-                await cloudinary.uploader.destroy(publicId);
+        // Hapus semua gambar dari Cloudinary (konsisten dengan field `images` array)
+        if (existingItem.images?.length) {
+            for (const imgUrl of existingItem.images) {
+                const publicId = extractPublicIdFromUrl(imgUrl);
+                if (publicId) {
+                    try {
+                        await cloudinary.uploader.destroy(publicId);
+                        console.log(`[Cloudinary] Aset dihapus: ${publicId}`);
+                    } catch (cloudinaryError: unknown) {
+                        console.error(`[Cloudinary] Gagal menghapus ${publicId}:`, cloudinaryError);
+                    }
+                }
             }
         }
 
-        // 4. Hapus data dari PostgreSQL
-        // Catatan: Karena onDelete: Cascade sudah ada di Schema untuk relasi (WearLog, dll),
-        // kita cukup menghapus Item utama.
         await prisma.item.delete({
             where: { id: itemId },
         });
 
-        // 5. Invalidate Cache agar UI Katalog langsung ter-update
         revalidatePath("/catalog");
         revalidatePath("/");
 
@@ -235,15 +226,9 @@ export async function DELETE(
         );
 
     } catch (error: unknown) {
-        let errorMessage = "Terjadi kesalahan internal saat menghapus item.";
-        if (error instanceof Error) {
-            errorMessage = error.message;
-        }
-
-        console.error("[DELETE_ITEM_ERROR]:", errorMessage);
-
+        console.error("[DELETE_ITEM_ERROR]:", error);
         return NextResponse.json(
-            { success: false, message: errorMessage },
+            { success: false, message: "Terjadi kesalahan internal saat menghapus item." },
             { status: 500 }
         );
     }
