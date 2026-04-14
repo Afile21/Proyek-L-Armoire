@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import Icon from "./Icon";
+import { Trash2, AlertCircle, Loader2 } from "lucide-react";
 
 interface DeleteItemButtonProps {
     itemId: string;
@@ -35,8 +37,6 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
             });
 
             setIsOpen(false);
-
-            // Redirect ke katalog dan paksa refresh data
             router.push("/catalog");
             router.refresh();
 
@@ -58,28 +58,27 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
 
     return (
         <>
-            {/* Tombol dimodifikasi: Hapus underline, tambahkan struktur border dan flex agar sama persis seperti tombol Edit */}
             <button
                 onClick={() => setIsOpen(true)}
-                className="flex w-full h-full items-center justify-center border border-gray-200 bg-transparent text-gray-500 py-4 text-[10px] tracking-[0.2em] uppercase hover:border-black hover:text-black transition-colors duration-300"
+                className="flex w-full h-full items-center justify-center gap-3 border border-gray-200 bg-transparent text-gray-500 py-4 text-[10px] tracking-[0.2em] uppercase hover:border-black hover:text-black transition-colors duration-300"
                 aria-label="Hapus Item"
             >
-                Delete
+                <Icon icon={Trash2} size={14} decorative={true} />
+                <span>Delete</span>
             </button>
 
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-                    {/* Menggunakan padding dan max-width yang proporsional */}
                     <div
                         className="bg-white w-full max-w-sm p-10 shadow-2xl transform transition-all flex flex-col"
                         role="dialog"
                         aria-modal="true"
                     >
-                        <h2 className="text-2xl uppercase tracking-tighter text-black mb-4" style={{ fontFamily: 'var(--font-playfair)' }}>
-                            Hapus Pakaian?
+                        <h2 className="flex items-center gap-3 text-2xl uppercase tracking-tighter text-black mb-4" style={{ fontFamily: 'var(--font-playfair)' }}>
+                            <Icon icon={AlertCircle} size={24} strokeWidth={1} decorative={true} />
+                            <span>Hapus Pakaian?</span>
                         </h2>
 
-                        {/* Teks diperpendek agar lebih elegan dan tidak memenuhi ruang */}
                         <p className="text-xs text-gray-500 mb-8 leading-relaxed tracking-wider">
                             Tindakan ini permanen. Item dan riwayat pemakaian akan dihapus.
                         </p>
@@ -95,9 +94,19 @@ export default function DeleteItemButton({ itemId }: DeleteItemButtonProps) {
                             <button
                                 onClick={handleDelete}
                                 disabled={isLoading}
-                                className="px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white bg-black hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                className="px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white bg-black hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
-                                {isLoading ? "Memproses..." : "Konfirmasi"}
+                                {isLoading ? (
+                                    <>
+                                        <Icon icon={Loader2} size={14} className="animate-spin" decorative={true} />
+                                        <span>Memproses...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Icon icon={Trash2} size={14} decorative={true} />
+                                        <span>Konfirmasi</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

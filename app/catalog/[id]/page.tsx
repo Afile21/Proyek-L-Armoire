@@ -2,36 +2,34 @@ import Link from "next/link";
 import { prisma } from "@/app/utils/prisma";
 import { notFound } from "next/navigation";
 import LogWearButton from "@/app/components/LogWearButton";
-import DeleteItemButton from "@/app/components/DeleteItemButton"; // [UPDATE FASE 15] Import Delete Button
+import DeleteItemButton from "@/app/components/DeleteItemButton";
 
-// Import fungsi untuk mengecek sesi di server
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/utils/authOptions";
 
-// Ubah tipe params menjadi Promise
-export default async function ItemDetail({ params }: { params: Promise<{ id: string }> }) {
-    
-    // Cek apakah pengguna saat ini sedang login
-    const session = await getServerSession(authOptions);
+// Import Icon System
+import Icon from "@/app/components/Icon";
+import { 
+    Award, Layers, Tag, Palette, Ruler, Scissors, 
+    CloudSun, Activity, CalendarDays, Hash, Calculator, PenLine 
+} from "lucide-react";
 
-    // 1. Await params terlebih dahulu sebelum mengambil id-nya
+export default async function ItemDetail({ params }: { params: Promise<{ id: string }> }) {
+    const session = await getServerSession(authOptions);
     const resolvedParams = await params;
 
-    // 2. Ambil data item spesifik beserta relasi WearLogs dan Category (FASE 14)
     const item = await prisma.item.findUnique({
         where: { id: resolvedParams.id },
         include: { 
             wearLogs: true,
-            category: true // [UPDATE FASE 14]
+            category: true 
         }
     });
 
-    // Jika ID tidak ditemukan di database, lemparkan ke halaman 404
     if (!item) {
         notFound();
     }
 
-    // 3. Logika Format Harga & CPW (Cost Per Wear)
     const priceNumber = Number(item.price);
     const wearsCount = item.wearLogs.length;
     const cpw = wearsCount > 0 ? Math.round(priceNumber / wearsCount) : priceNumber;
@@ -48,7 +46,6 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
         maximumFractionDigits: 0
     }).format(cpw);
 
-    // 4. Logika Kalkulasi Durasi Kepemilikan (Owned For)
     const purchaseDate = new Date(item.purchase_date);
     const today = new Date();
     const diffTime = Math.abs(today.getTime() - purchaseDate.getTime());
@@ -87,77 +84,92 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
 
                         {/* Header Info */}
                         <div>
-                            {/* Brand diletakkan di atas dengan ukuran lebih kecil namun bold/tracking lebar */}
-                            <h2 className="text-sm font-bold tracking-[0.2em] uppercase text-gray-500 mb-2">
-                                {item.brand}
+                            <h2 className="flex items-center gap-2 text-sm font-bold tracking-[0.2em] uppercase text-gray-500 mb-2">
+                                <Icon icon={Award} size={14} decorative={true} />
+                                <span>{item.brand}</span>
                             </h2>
                             
-                            {/* Nama Item menjadi tajuk utama (H1) yang besar dan elegan */}
                             <h1 className="text-3xl md:text-5xl uppercase tracking-tighter leading-none" style={{ fontFamily: 'var(--font-playfair)' }}>
                                 {item.name}
                             </h1>
                             
-                            {/* [UPDATE FASE 14] Render nama dari relasi tabel Kategori */}
-                            <p className="text-xs tracking-[0.3em] text-gray-400 mt-4">
-                                CATEGORY: {item.category?.name}
+                            <p className="flex items-center gap-2 text-xs tracking-[0.3em] text-gray-400 mt-4">
+                                <Icon icon={Layers} size={12} decorative={true} />
+                                <span>CATEGORY: {item.category?.name}</span>
                             </p>
-                            <p className="text-xl mt-6 font-medium">
-                                {formattedPrice}
+                            <p className="flex items-center gap-2 text-xl mt-6 font-medium">
+                                <Icon icon={Tag} size={20} decorative={true} />
+                                <span>{formattedPrice}</span>
                             </p>
                         </div>
 
                         {/* Tabel Atribut Database Asli */}
                         <div className="grid grid-cols-2 gap-y-8 text-[10px] md:text-xs uppercase tracking-widest border-y border-gray-100 py-8">
                             <div>
-                                <span className="block text-gray-400 mb-1">Color</span>
+                                <span className="flex items-center gap-1.5 text-gray-400 mb-1">
+                                    <Icon icon={Palette} size={12} decorative={true} /> Color
+                                </span>
                                 <span>{item.base_color}</span>
                             </div>
                             <div>
-                                <span className="block text-gray-400 mb-1">Size</span>
+                                <span className="flex items-center gap-1.5 text-gray-400 mb-1">
+                                    <Icon icon={Ruler} size={12} decorative={true} /> Size
+                                </span>
                                 <span>{item.size}</span>
                             </div>
                             <div>
-                                <span className="block text-gray-400 mb-1">Material</span>
+                                <span className="flex items-center gap-1.5 text-gray-400 mb-1">
+                                    <Icon icon={Scissors} size={12} decorative={true} /> Material
+                                </span>
                                 <span>{item.material}</span>
                             </div>
                             <div>
-                                <span className="block text-gray-400 mb-1">Season</span>
+                                <span className="flex items-center gap-1.5 text-gray-400 mb-1">
+                                    <Icon icon={CloudSun} size={12} decorative={true} /> Season
+                                </span>
                                 <span>{item.season.replace('_', ' ')}</span>
                             </div>
                             <div>
-                                <span className="block text-gray-400 mb-1">Genre</span>
+                                <span className="flex items-center gap-1.5 text-gray-400 mb-1">
+                                    <Icon icon={Layers} size={12} decorative={true} /> Genre
+                                </span>
                                 <span>{item.genre}</span>
                             </div>
                             <div>
-                                <span className="block text-gray-400 mb-1">Status</span>
-                                {/* Efek visual pudar jika pakaian tidak sedang aktif/bisa dipakai */}
+                                <span className="flex items-center gap-1.5 text-gray-400 mb-1">
+                                    <Icon icon={Activity} size={12} decorative={true} /> Status
+                                </span>
                                 <span className={item.status !== 'ACTIVE' ? 'text-gray-400 italic' : ''}>
                                     {item.status.replace('_', ' ')}
                                 </span>
                             </div>
-                            {/* --- [UPDATE FASE 14] Wash Instructions --- */}
                             <div className="col-span-2">
-                                <span className="block text-gray-400 mb-1">Care & Wash Instructions</span>
+                                <span className="flex items-center gap-1.5 text-gray-400 mb-1">
+                                    <Icon icon={Activity} size={12} decorative={true} /> Care & Wash Instructions
+                                </span>
                                 <span>{item.wash_instructions || "SEE CARE LABEL"}</span>
                             </div>
                         </div>
 
-                        {/* METRIK FINANSIAL: Kalkulator CPW Dinamis */}
+                        {/* METRIK FINANSIAL */}
                         <div className="bg-gray-50 p-6 md:p-8 border border-gray-100">
-                            <h3 className="text-xs tracking-[0.2em] uppercase mb-8 font-bold border-b border-gray-200 pb-4">
-                                Investment Metrics
+                            <h3 className="flex items-center gap-2 text-xs tracking-[0.2em] uppercase mb-8 font-bold border-b border-gray-200 pb-4">
+                                <Icon icon={Calculator} size={14} decorative={true} />
+                                <span>Investment Metrics</span>
                             </h3>
                             <div className="space-y-6 text-xs uppercase tracking-widest">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Owned For</span>
+                                    <span className="flex items-center gap-2 text-gray-400">
+                                        <Icon icon={CalendarDays} size={12} decorative={true} /> Owned For
+                                    </span>
                                     <span>{ownedFor}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-400">Total Wears</span>
+                                    <span className="flex items-center gap-2 text-gray-400">
+                                        <Icon icon={Hash} size={12} decorative={true} /> Total Wears
+                                    </span>
                                     <span>{wearsCount} Times</span>
                                 </div>
-
-                                {/* Hasil CPW */}
                                 <div className="flex justify-between items-center pt-6 border-t border-gray-200">
                                     <span className="font-bold">Cost Per Wear</span>
                                     <span className="text-lg font-bold bg-black text-white px-3 py-1">
@@ -167,25 +179,20 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                             </div>
                         </div>
 
-                        {/* Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
-                        {/* Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
-                        {/* Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
+                        {/* Tombol Aksi Interaktif */}
                         {session && (
                             <div className="space-y-4 pt-4 border-t border-gray-100 mt-8">
-                                {/* Tombol Atas: Lebar Penuh */}
                                 <LogWearButton itemId={item.id} />
                                 
-                                {/* Tombol Bawah: Dibelah dua sejajar horizontal dengan lebar gabungan sama dengan tombol di atas */}
                                 <div className="flex flex-row w-full gap-4">
-                                    {/* Tombol Edit (Kiri) - flex-1 memastikan ukurannya membelah ruang sama rata */}
                                     <Link
                                         href={`/catalog/${resolvedParams.id}/edit`}
-                                        className="flex flex-1 items-center justify-center border border-gray-200 bg-transparent text-gray-500 py-4 text-[10px] tracking-[0.2em] uppercase hover:border-black hover:text-black transition-colors duration-300"
+                                        className="flex flex-1 items-center justify-center gap-3 border border-gray-200 bg-transparent text-gray-500 py-4 text-[10px] tracking-[0.2em] uppercase hover:border-black hover:text-black transition-colors duration-300"
                                     >
-                                        Edit Item
+                                        <Icon icon={PenLine} size={14} decorative={true} />
+                                        <span>Edit Item</span>
                                     </Link>
                                     
-                                    {/* Tombol Delete (Kanan) - flex-1 agar simetris dengan tombol Edit */}
                                     <div className="flex flex-1">
                                         <DeleteItemButton itemId={item.id} />
                                     </div>
