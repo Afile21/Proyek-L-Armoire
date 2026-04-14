@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/app/utils/prisma";
 import { notFound } from "next/navigation";
 import LogWearButton from "@/app/components/LogWearButton";
+import DeleteItemButton from "@/app/components/DeleteItemButton"; // [UPDATE FASE 15] Import Delete Button
 
 // Import fungsi untuk mengecek sesi di server
 import { getServerSession } from "next-auth";
@@ -167,17 +168,28 @@ export default async function ItemDetail({ params }: { params: Promise<{ id: str
                         </div>
 
                         {/* Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
+                        {/* Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
+                        {/* Tombol Aksi Interaktif HANYA dirender jika ada sesi (user sudah login) */}
                         {session && (
-                            <div className="space-y-4">
+                            <div className="space-y-4 pt-4 border-t border-gray-100 mt-8">
+                                {/* Tombol Atas: Lebar Penuh */}
                                 <LogWearButton itemId={item.id} />
                                 
-                                {/* --- [UPDATE FASE 14.3] Tombol Edit (Secondary Button) --- */}
-                                <Link
-                                    href={`/catalog/${resolvedParams.id}/edit`}
-                                    className="flex w-full items-center justify-center border border-gray-200 bg-transparent text-gray-500 py-4 text-[10px] tracking-[0.2em] uppercase hover:border-black hover:text-black transition-colors duration-300"
-                                >
-                                    Edit Item
-                                </Link>
+                                {/* Tombol Bawah: Dibelah dua sejajar horizontal dengan lebar gabungan sama dengan tombol di atas */}
+                                <div className="flex flex-row w-full gap-4">
+                                    {/* Tombol Edit (Kiri) - flex-1 memastikan ukurannya membelah ruang sama rata */}
+                                    <Link
+                                        href={`/catalog/${resolvedParams.id}/edit`}
+                                        className="flex flex-1 items-center justify-center border border-gray-200 bg-transparent text-gray-500 py-4 text-[10px] tracking-[0.2em] uppercase hover:border-black hover:text-black transition-colors duration-300"
+                                    >
+                                        Edit Item
+                                    </Link>
+                                    
+                                    {/* Tombol Delete (Kanan) - flex-1 agar simetris dengan tombol Edit */}
+                                    <div className="flex flex-1">
+                                        <DeleteItemButton itemId={item.id} />
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

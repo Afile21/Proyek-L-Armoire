@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@source "../features/**/*.{js,ts,jsx,tsx}";
+@source "./components/**/*.{js,ts,jsx,tsx}";
 
 /* TAMBALAN: Meregistrasi custom font dari layout.tsx ke Tailwind v4 
   agar bisa menggunakan class seperti font-sans atau font-playfair
